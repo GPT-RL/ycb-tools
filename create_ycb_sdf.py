@@ -22,18 +22,30 @@ Sebastian Castro 2020-2021
 default_ycb_folder = os.path.join("models", "ycb")
 default_template_folder = os.path.join("templates", "ycb")
 
-if __name__=="__main__":
+if __name__ == "__main__":
 
     print("Creating files to use YCB objects in Gazebo...")
 
     # Parse arguments
     parser = argparse.ArgumentParser(description="YCB Model Importer")
-    parser.add_argument("--downsample-ratio", type=float, default=1,
-                        help="Mesh vertex downsample ratio (set to 1 to leave meshes as they are)")
-    parser.add_argument("--template-folder", type=str, default=default_template_folder,
-                        help="Location of YCB models (defaults to ./templates/ycb)")
-    parser.add_argument("--ycb-folder", type=str, default=default_ycb_folder,
-                        help="Location of YCB models (defaults to ./models/ycb)")
+    parser.add_argument(
+        "--downsample-ratio",
+        type=float,
+        default=1,
+        help="Mesh vertex downsample ratio (set to 1 to leave meshes as they are)",
+    )
+    parser.add_argument(
+        "--template-folder",
+        type=str,
+        default=default_template_folder,
+        help="Location of YCB models (defaults to ./templates/ycb)",
+    )
+    parser.add_argument(
+        "--ycb-folder",
+        type=str,
+        default=default_ycb_folder,
+        help="Location of YCB models (defaults to ./models/ycb)",
+    )
 
     args = parser.parse_args()
 
@@ -44,11 +56,11 @@ if __name__=="__main__":
     config_template_file = os.path.join(args.template_folder, "model.config")
     model_template_file = os.path.join(args.template_folder, "template.sdf")
     material_template_file = os.path.join(args.template_folder, "template.material")
-    with open(config_template_file,"r") as f:
+    with open(config_template_file, "r") as f:
         config_template_text = f.read()
-    with open(model_template_file,"r") as f:
+    with open(model_template_file, "r") as f:
         model_template_text = f.read()
-    with open(material_template_file,"r") as f:
+    with open(material_template_file, "r") as f:
         material_template_text = f.read()
 
     # Now loop through all the folders
@@ -80,13 +92,15 @@ if __name__=="__main__":
                 inertia = trimesh.inertia.transform_inertia(tf, mesh.moment_inertia)
                 # Center of mass
                 com_vec = mesh.center_mass.tolist()
-                eul = trimesh.transformations.euler_from_matrix(np.linalg.inv(tf), axes="sxyz")
+                eul = trimesh.transformations.euler_from_matrix(
+                    np.linalg.inv(tf), axes="sxyz"
+                )
                 com_vec.extend(list(eul))
                 com_text = str(com_vec)
                 com_text = com_text.replace("[", "")
                 com_text = com_text.replace("]", "")
                 com_text = com_text.replace(",", "")
-                
+
                 # Create a downsampled mesh file with a subset of vertices and faces
                 if args.downsample_ratio < 1:
                     mesh_pts = mesh.vertices.shape[0]
@@ -103,7 +117,7 @@ if __name__=="__main__":
                 config_text = config_template_text.replace("$MODEL_SHORT", model_short)
                 with open(os.path.join(model_folder, "model.config"), "w") as f:
                     f.write(config_text)
-            
+
                 # Copy and modify the model file template
                 model_text = model_template_text.replace("$MODEL_SHORT", model_short)
                 model_text = model_text.replace("$MODEL_LONG", model_long)
@@ -125,14 +139,22 @@ if __name__=="__main__":
                     texture_file = "texture_map.png"
                 elif mesh_type == "tsdf":
                     texture_file = "textured.png"
-                material_text = material_template_text.replace("$MODEL_SHORT", model_short)
+                material_text = material_template_text.replace(
+                    "$MODEL_SHORT", model_short
+                )
                 material_text = material_text.replace("$MODEL_LONG", model_long)
                 material_text = material_text.replace("$MESH_TYPE", mesh_type)
                 material_text = material_text.replace("$TEXTURE_FILE", texture_file)
-                with open(os.path.join(model_folder, model_short + ".material"), "w") as f:
+                with open(
+                    os.path.join(model_folder, model_short + ".material"), "w"
+                ) as f:
                     f.write(material_text)
 
             except:
-                print("Error processing {}. Textured mesh likely does not exist for this object.".format(folder))
+                print(
+                    "Error processing {}. Textured mesh likely does not exist for this object.".format(
+                        folder
+                    )
+                )
 
     print("Done.")
